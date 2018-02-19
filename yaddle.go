@@ -59,6 +59,9 @@ type Hypervisor struct {
 	Servers            []Server `json:"servers"`
 }
 
+// HostsResponse is a Response of OpenStack Nova API
+type HostsResponse ServersResponse
+
 //ServersResponse is a Response of OpenStack Nova API
 type ServersResponse struct {
 	Hypervisors []Hypervisor `json:"hypervisors"`
@@ -110,7 +113,39 @@ func AuthGetToken() (*Token, error) {
 
 }
 
-// GetServers is http request  from OpenStack Nova API
+// TODO: Criar função base para os Gets
+
+// GetHosts is http request from OpenStack Nova API
+func GetHosts(authToken string) (*HostsResponse, error) {
+	var response HostsResponse
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	reqURL := config.OpenStack.BaseUrl + "/v2/" + config.OpenStack.TenantID + "/os-hypervisors"
+
+	req, err := http.NewRequest("GET", reqURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("User-Agent", "python-novaclient")
+	req.Header.Add("Accept", "application/json")
+
+	req.Header.Add("X-Auth-Token", authToken)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	json.NewDecoder(resp.Body).Decode(&response)
+
+	return &response, nil
+}
+
+// GetServers is http request from OpenStack Nova API
 func GetServers(compute string, authToken string) (*ServersResponse, error) {
 	var response ServersResponse
 

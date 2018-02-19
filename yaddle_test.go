@@ -25,12 +25,21 @@ var (
 	authOpenStack       AuthOpenStack
 )
 
+// GetHosts
+var (
+	hypervisorGH  Hypervisor
+	hostsResponse HostsResponse
+)
+
 // GetServers
 var (
 	server          Server
-	hypervisor      Hypervisor
+	hypervisorGS    Hypervisor
 	serversResponse ServersResponse
+)
 
+// Global
+var (
 	authToken string
 )
 
@@ -71,6 +80,22 @@ func init() {
 
 }
 
+// GetHosts
+func init() {
+
+	hypervisorGH = Hypervisor{
+		Status:             "enabled",
+		State:              "down",
+		ID:                 12,
+		HypervisorHostname: "compute-2.dev.nuvem-intera.local",
+	}
+
+	hostsResponse = HostsResponse{
+		Hypervisors: []Hypervisor{hypervisorGH},
+	}
+
+}
+
 // GetServers
 func init() {
 
@@ -79,7 +104,7 @@ func init() {
 		Name: "instance-00003068",
 	}
 
-	hypervisor = Hypervisor{
+	hypervisorGS = Hypervisor{
 		Status:             "enabled",
 		State:              "down",
 		ID:                 12,
@@ -88,9 +113,13 @@ func init() {
 	}
 
 	serversResponse = ServersResponse{
-		Hypervisors: []Hypervisor{hypervisor},
+		Hypervisors: []Hypervisor{hypervisorGS},
 	}
 
+}
+
+// Global
+func init() {
 	authToken = "ABC"
 
 }
@@ -123,6 +152,12 @@ func MockingServer() *httptest.Server {
 				fmt.Fprintln(w, string(resp))
 			}
 
+		case "/v2/" + config.OpenStack.TenantID + "/os-hypervisors":
+			if r.Header["X-Auth-Token"][0] == authToken {
+				resp, _ := json.Marshal(hostsResponse)
+				fmt.Fprintln(w, string(resp))
+			}
+
 		case "/v2/" + config.OpenStack.TenantID + "/os-hypervisors/compute-2.dev.nuvem-intera.local/servers":
 			if r.Header["X-Auth-Token"][0] == authToken {
 				resp, _ := json.Marshal(serversResponse)
@@ -145,6 +180,22 @@ func Test_AuthGetToken_WithValidConfig_ReturnsValidAuthToken(t *testing.T) {
 
 	if string(res) != string(authToken) {
 		t.Errorf(" Response Mock: %s != Response AuthGetToken: %s", res, authToken)
+	}
+}
+
+func Test_GetHosts_WithValidConfigTenantIDAndToken_ReturnsValidServersResponse(t *testing.T) {
+
+	res, _ := json.Marshal(hostsResponse)
+
+	// TODO: Ver se não é melhor usar a propriedade RequestURI
+	httpMockingServer := MockingServer()
+	config.OpenStack.BaseUrl = httpMockingServer.URL
+
+	hostsResp, _ := GetHosts(authToken)
+	hosts, _ := json.Marshal(hostsResp)
+
+	if string(res) != string(hosts) {
+		t.Errorf(" Response Mock: %s != Response GetHosts: %s", res, hosts)
 	}
 }
 
