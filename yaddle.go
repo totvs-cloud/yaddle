@@ -67,6 +67,11 @@ type ServersResponse struct {
 	Hypervisors []Hypervisor `json:"hypervisors"`
 }
 
+// SetConfigs is function for set var config.OpenStack
+func SetConfigs(configP config.OpenStackConfig) {
+	config.OpenStack = configP
+}
+
 // AuthGetToken is http request from OpenStack auth API
 func AuthGetToken() (*Token, error) {
 

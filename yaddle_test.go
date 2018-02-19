@@ -168,6 +168,26 @@ func MockingServer() *httptest.Server {
 	}))
 }
 
+func Test_SetConfigs_WithValidConfigOpenStack(t *testing.T) {
+	// var config config.OpenStackConfig
+	configMock := config.OpenStackConfig{
+		BaseUrl:    "http://minhaurl.com:6000",
+		AuthUrl:    "http://minhaauthurl.com:7000",
+		Username:   "jc321",
+		Password:   "jc321",
+		TenantName: "testeTenant",
+		TenantID:   "8662e6ce659946be9213346d3deaf015",
+	}
+
+	SetConfigs(configMock)
+	jConfig, _ := json.Marshal(configMock)
+	jOpenStackConfig, _ := json.Marshal(config.OpenStack)
+	if string(jConfig) != string(jOpenStackConfig) {
+		t.Errorf(" Config Mock: %s != Config after SetConfigs: %s", jConfig, jOpenStackConfig)
+	}
+
+}
+
 func Test_AuthGetToken_WithValidConfig_ReturnsValidAuthToken(t *testing.T) {
 	res, _ := json.Marshal(token)
 
@@ -183,7 +203,7 @@ func Test_AuthGetToken_WithValidConfig_ReturnsValidAuthToken(t *testing.T) {
 	}
 }
 
-func Test_GetHosts_WithValidConfigTenantIDAndToken_ReturnsValidServersResponse(t *testing.T) {
+func Test_GetHosts_WithValidConfigTenantIDAndToken_ReturnsValidHostsResponse(t *testing.T) {
 
 	res, _ := json.Marshal(hostsResponse)
 
