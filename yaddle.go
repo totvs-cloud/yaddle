@@ -59,6 +59,8 @@ type Hypervisor struct {
 	Servers            []Server `json:"servers"`
 }
 
+// TODO: Trocar as variaveis "Response" Por OpenStackHosts/Computes
+
 // HostsResponse is a Response of OpenStack Nova API
 type HostsResponse ServersResponse
 
@@ -178,4 +180,15 @@ func GetServers(compute string, authToken string) (*ServersResponse, error) {
 	json.NewDecoder(resp.Body).Decode(&response)
 
 	return &response, nil
+}
+
+// ListServersFromHosts - give a list of hosts,  return: servers of each hosts
+func ListServersFromHosts(hosts []Hypervisor, authToken string) (*HostsResponse, error) {
+	var hypResp HostsResponse
+	jsonmock := `{"hypervisors":[{"status":"enabled","state":"down","id":12,"hypervisor_hostname":"compute-2.dev.nuvem-intera.local","servers":[{"uuid":"a67d8b68-47bb-49dd-88ad-8cf9844e62cd","name":"instance-00003068"}]},{"status":"enabled","state":"down","id":12,"hypervisor_hostname":"compute-1.dev.nuvem-intera.local","servers":[{"uuid":"a67d8b68-47bb-49dd-88ad-8cf9844e62cd","name":"instance-00003068"}]}]}`
+	if err := json.Unmarshal([]byte(jsonmock), &hypResp); err != nil {
+		return nil, err
+	}
+
+	return &hypResp, nil
 }

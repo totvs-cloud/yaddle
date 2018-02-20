@@ -33,15 +33,31 @@ var (
 
 // GetServers
 var (
-	server          Server
 	hypervisorGS    Hypervisor
 	serversResponse ServersResponse
 )
 
+// ListServersFromHosts
+var (
+	hypervisorLSFH               Hypervisor
+	listServersFromHostsResponse ServersResponse
+)
+
 // Global
 var (
+	server    Server
 	authToken string
 )
+
+// Global
+func init() {
+	server = Server{
+		UUID: "a67d8b68-47bb-49dd-88ad-8cf9844e62cd",
+		Name: "instance-00003068",
+	}
+
+	authToken = "ABC"
+}
 
 //AuthGetToken
 func init() {
@@ -99,11 +115,6 @@ func init() {
 // GetServers
 func init() {
 
-	server = Server{
-		UUID: "a67d8b68-47bb-49dd-88ad-8cf9844e62cd",
-		Name: "instance-00003068",
-	}
-
 	hypervisorGS = Hypervisor{
 		Status:             "enabled",
 		State:              "down",
@@ -118,19 +129,15 @@ func init() {
 
 }
 
-// Global
-func init() {
-	authToken = "ABC"
-
-}
-
-// Configs
+// ListServersFromHosts
 func init() {
 
-	config.OpenStack.Username = passwordCredentials.Username
-	config.OpenStack.Password = passwordCredentials.Password
+	hypervisorLSFH = hypervisorGS
+	hypervisorLSFH.HypervisorHostname = "compute-1.dev.nuvem-intera.local"
 
-	config.OpenStack.TenantID = auth.TenantID
+	listServersFromHostsResponse = ServersResponse{
+		Hypervisors: []Hypervisor{hypervisorLSFH},
+	}
 
 }
 
@@ -164,6 +171,12 @@ func MockingServer() *httptest.Server {
 				fmt.Fprintln(w, string(resp))
 			}
 
+		case "/v2/" + config.OpenStack.TenantID + "/os-hypervisors/compute-1.dev.nuvem-intera.local/servers":
+			if r.Header["X-Auth-Token"][0] == authToken {
+				resp, _ := json.Marshal(listServersFromHostsResponse)
+				fmt.Fprintln(w, string(resp))
+			}
+
 		}
 	}))
 }
@@ -185,7 +198,6 @@ func Test_SetConfigs_WithValidConfigOpenStack(t *testing.T) {
 	if string(jConfig) != string(jOpenStackConfig) {
 		t.Errorf(" Config Mock: %s != Config after SetConfigs: %s", jConfig, jOpenStackConfig)
 	}
-
 }
 
 func Test_AuthGetToken_WithValidConfig_ReturnsValidAuthToken(t *testing.T) {
@@ -232,5 +244,38 @@ func Test_GetServers_WithValidHostAndToken_ReturnsValidServersResponse(t *testin
 
 	if string(res) != string(getServers) {
 		t.Errorf(" Response Mock: %s != Response GetServers: %s", res, getServers)
+	}
+}
+
+func Test_ListServersFromHosts_WithValidHostListAndToken_ReturnsValidHostsWithServersResponse(t *testing.T) {
+
+	listServersFromHostsMockResponse := listServersFromHostsResponse
+	listServersFromHostsMockResponse = ServersResponse{
+		Hypervisors: []Hypervisor{hypervisorGS, hypervisorLSFH},
+	}
+
+	res, _ := json.Marshal(listServersFromHostsMockResponse)
+
+	// TODO: Ver se não é melhor usar a propriedade RequestURI
+	httpMockingServer := MockingServer()
+	config.OpenStack.BaseUrl = httpMockingServer.URL
+
+	var OSHosts HostsResponse
+
+	hypervisor1 := hypervisorGS
+	hypervisor1.Servers = nil
+
+	hypervisor2 := hypervisorLSFH
+	hypervisor2.Servers = nil
+
+	OSHosts = HostsResponse{
+		Hypervisors: []Hypervisor{hypervisor1, hypervisor2},
+	}
+
+	serversFromHosts, _ := ListServersFromHosts(OSHosts.Hypervisors, authToken)
+	listServersFromHosts, _ := json.Marshal(serversFromHosts)
+
+	if string(res) != string(listServersFromHosts) {
+		t.Errorf(" Response Mock: %s != Response ListServersFromHosts: %s", res, listServersFromHosts)
 	}
 }
