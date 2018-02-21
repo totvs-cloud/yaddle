@@ -279,3 +279,24 @@ func Test_ListServersFromHosts_WithValidHostListAndToken_ReturnsValidHostsWithSe
 		t.Errorf(" Response Mock: %s != Response ListServersFromHosts: %s", res, listServersFromHosts)
 	}
 }
+
+func Test_GetAllHostsFullInfo_WithValidConfig_ReturnsValidHostsFullInfoResponse(t *testing.T) {
+
+	listServersFromHostsMockResponse := listServersFromHostsResponse
+	listServersFromHostsMockResponse = ServersResponse{
+		Hypervisors: []Hypervisor{hypervisorGS, hypervisorLSFH},
+	}
+
+	res, _ := json.Marshal(listServersFromHostsMockResponse)
+
+	// TODO: Ver se não é melhor usar a propriedade RequestURI
+	httpMockingServer := MockingServer()
+	config.OpenStack.BaseUrl = httpMockingServer.URL
+
+	serversFromHosts, _ := GetAllHostsFullInfo()
+	getAllHostsFullInfo, _ := json.Marshal(serversFromHosts)
+
+	if string(res) != string(getAllHostsFullInfo) {
+		t.Errorf(" Response Mock: %s != Response GetAllHostsFullInfo: %s", res, getAllHostsFullInfo)
+	}
+}
