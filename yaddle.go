@@ -184,11 +184,17 @@ func GetServers(compute string, authToken string) (*ServersResponse, error) {
 
 // ListServersFromHosts - give a list of hosts,  return: servers of each hosts
 func ListServersFromHosts(hosts []Hypervisor, authToken string) (*HostsResponse, error) {
+	var hyp []Hypervisor
 	var hypResp HostsResponse
-	jsonmock := `{"hypervisors":[{"status":"enabled","state":"down","id":12,"hypervisor_hostname":"compute-2.dev.nuvem-intera.local","servers":[{"uuid":"a67d8b68-47bb-49dd-88ad-8cf9844e62cd","name":"instance-00003068"}]},{"status":"enabled","state":"down","id":12,"hypervisor_hostname":"compute-1.dev.nuvem-intera.local","servers":[{"uuid":"a67d8b68-47bb-49dd-88ad-8cf9844e62cd","name":"instance-00003068"}]}]}`
-	if err := json.Unmarshal([]byte(jsonmock), &hypResp); err != nil {
-		return nil, err
+
+	for _, host := range hosts {
+		servers, err := GetServers(host.HypervisorHostname, authToken)
+		if err != nil {
+			return nil, err
+		}
+		hyp = append(hyp, servers.Hypervisors[0])
 	}
+	hypResp.Hypervisors = hyp
 
 	return &hypResp, nil
 }
