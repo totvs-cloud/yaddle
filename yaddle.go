@@ -201,12 +201,24 @@ func ListServersFromHosts(hosts []Hypervisor, authToken string) (*HostsResponse,
 
 // GetAllHostsFullInfo is a abstraction of All functions necessary for full Hosts/Computes infos return
 func GetAllHostsFullInfo() (*HostsResponse, error) {
-
 	var hypResp HostsResponse
-	jsonmock := `{"hypervisors":[{"status":"enabled","state":"down","id":12,"hypervisor_hostname":"compute-2.dev.nuvem-intera.local","servers":[{"uuid":"a67d8b68-47bb-49dd-88ad-8cf9844e62cd","name":"instance-00003068"}]},{"status":"enabled","state":"down","id":12,"hypervisor_hostname":"compute-1.dev.nuvem-intera.local","servers":[{"uuid":"a67d8b68-47bb-49dd-88ad-8cf9844e62cd","name":"instance-00003068"}]}]}`
-	if err := json.Unmarshal([]byte(jsonmock), &hypResp); err != nil {
+
+	token, err := AuthGetToken()
+	if err != nil {
 		return nil, err
 	}
+
+	hostsResp, err := GetHosts(token.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	serversFromHosts, err := ListServersFromHosts(hostsResp.Hypervisors, token.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	hypResp = *serversFromHosts
 
 	return &hypResp, nil
 

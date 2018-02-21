@@ -3,6 +3,7 @@ package yaddle
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -68,7 +69,7 @@ func init() {
 	token = Token{
 		IssuedAt: "2018-02-14T19:42:42.848806",
 		Expires:  t,
-		ID:       "XYZ",
+		ID:       authToken,
 	}
 
 	access = Access{
@@ -182,7 +183,6 @@ func MockingServer() *httptest.Server {
 }
 
 func Test_SetConfigs_WithValidConfigOpenStack(t *testing.T) {
-	// var config config.OpenStackConfig
 	configMock := config.OpenStackConfig{
 		BaseUrl:    "http://minhaurl.com:6000",
 		AuthUrl:    "http://minhaauthurl.com:7000",
@@ -284,7 +284,7 @@ func Test_GetAllHostsFullInfo_WithValidConfig_ReturnsValidHostsFullInfoResponse(
 
 	listServersFromHostsMockResponse := listServersFromHostsResponse
 	listServersFromHostsMockResponse = ServersResponse{
-		Hypervisors: []Hypervisor{hypervisorGS, hypervisorLSFH},
+		Hypervisors: []Hypervisor{hypervisorGS},
 	}
 
 	res, _ := json.Marshal(listServersFromHostsMockResponse)
@@ -292,8 +292,12 @@ func Test_GetAllHostsFullInfo_WithValidConfig_ReturnsValidHostsFullInfoResponse(
 	// TODO: Ver se não é melhor usar a propriedade RequestURI
 	httpMockingServer := MockingServer()
 	config.OpenStack.BaseUrl = httpMockingServer.URL
+	config.OpenStack.AuthUrl = httpMockingServer.URL
 
-	serversFromHosts, _ := GetAllHostsFullInfo()
+	serversFromHosts, err := GetAllHostsFullInfo()
+	if err != nil {
+		log.Println(err.Error())
+	}
 	getAllHostsFullInfo, _ := json.Marshal(serversFromHosts)
 
 	if string(res) != string(getAllHostsFullInfo) {
