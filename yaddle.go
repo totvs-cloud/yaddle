@@ -22,7 +22,7 @@ type Access struct {
 	Token Token `json:"token"`
 }
 
-// AuthResponse is a response for OpenStack auth API where contains a tokenjuilioa
+// AuthResponse is a response for OpenStack auth API where contains a token
 type AuthResponse struct {
 	Access Access `json:"access"`
 }
