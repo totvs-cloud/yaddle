@@ -2,6 +2,8 @@
 
 Manage OpenStack API for get Host and yours servers 
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/totvs-cloud/yaddle)](https://goreportcard.com/report/github.com/totvs-cloud/yaddle)
+
 ### Prerequisites
 
 
