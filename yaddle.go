@@ -22,7 +22,7 @@ type Access struct {
 	Token Token `json:"token"`
 }
 
-// AuthResponse is a response for OpenStack auth API where contains a tokenjuilioa
+// AuthResponse is a response for OpenStack auth API where contains a token
 type AuthResponse struct {
 	Access Access `json:"access"`
 }
@@ -59,13 +59,8 @@ type Hypervisor struct {
 	Servers            []Server `json:"servers"`
 }
 
-// TODO: Trocar as variaveis "Response" Por OpenStackHosts/Computes
-
-// HostsResponse is a Response of OpenStack Nova API
-type HostsResponse ServersResponse
-
-//ServersResponse is a Response of OpenStack Nova API
-type ServersResponse struct {
+//OpenStackHosts is a Response of OpenStack Nova API
+type OpenStackHosts struct {
 	Hypervisors []Hypervisor `json:"hypervisors"`
 }
 
@@ -123,8 +118,8 @@ func AuthGetToken() (*Token, error) {
 // TODO: Criar função base para os Gets
 
 // GetHosts is http request from OpenStack Nova API
-func GetHosts(authToken string) (*HostsResponse, error) {
-	var response HostsResponse
+func GetHosts(authToken string) (*OpenStackHosts, error) {
+	var response OpenStackHosts
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -153,8 +148,8 @@ func GetHosts(authToken string) (*HostsResponse, error) {
 }
 
 // GetServers is http request from OpenStack Nova API
-func GetServers(compute string, authToken string) (*ServersResponse, error) {
-	var response ServersResponse
+func GetServers(compute string, authToken string) (*OpenStackHosts, error) {
+	var response OpenStackHosts
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -183,9 +178,9 @@ func GetServers(compute string, authToken string) (*ServersResponse, error) {
 }
 
 // ListServersFromHosts - give a list of hosts,  return: servers of each hosts
-func ListServersFromHosts(hosts []Hypervisor, authToken string) (*HostsResponse, error) {
+func ListServersFromHosts(hosts []Hypervisor, authToken string) (*OpenStackHosts, error) {
 	var hyp []Hypervisor
-	var hypResp HostsResponse
+	var hypResp OpenStackHosts
 
 	for _, host := range hosts {
 		servers, err := GetServers(host.HypervisorHostname, authToken)
@@ -200,8 +195,8 @@ func ListServersFromHosts(hosts []Hypervisor, authToken string) (*HostsResponse,
 }
 
 // GetAllHostsFullInfo is a abstraction of All functions necessary for full Hosts/Computes infos return
-func GetAllHostsFullInfo() (*HostsResponse, error) {
-	var hypResp HostsResponse
+func GetAllHostsFullInfo() (*OpenStackHosts, error) {
+	var hypResp OpenStackHosts
 
 	token, err := AuthGetToken()
 	if err != nil {

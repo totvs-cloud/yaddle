@@ -29,19 +29,19 @@ var (
 // GetHosts
 var (
 	hypervisorGH  Hypervisor
-	hostsResponse HostsResponse
+	hostsResponse OpenStackHosts
 )
 
 // GetServers
 var (
 	hypervisorGS    Hypervisor
-	serversResponse ServersResponse
+	serversResponse OpenStackHosts
 )
 
 // ListServersFromHosts
 var (
-	hypervisorLSFH               Hypervisor
-	listServersFromHostsResponse ServersResponse
+	hypervisorLSFH                Hypervisor
+	listServersFromOpenStackHosts OpenStackHosts
 )
 
 // Global
@@ -107,7 +107,7 @@ func init() {
 		HypervisorHostname: "compute-2.dev.nuvem-intera.local",
 	}
 
-	hostsResponse = HostsResponse{
+	hostsResponse = OpenStackHosts{
 		Hypervisors: []Hypervisor{hypervisorGH},
 	}
 
@@ -124,7 +124,7 @@ func init() {
 		Servers:            []Server{server},
 	}
 
-	serversResponse = ServersResponse{
+	serversResponse = OpenStackHosts{
 		Hypervisors: []Hypervisor{hypervisorGS},
 	}
 
@@ -136,7 +136,7 @@ func init() {
 	hypervisorLSFH = hypervisorGS
 	hypervisorLSFH.HypervisorHostname = "compute-1.dev.nuvem-intera.local"
 
-	listServersFromHostsResponse = ServersResponse{
+	listServersFromOpenStackHosts = OpenStackHosts{
 		Hypervisors: []Hypervisor{hypervisorLSFH},
 	}
 
@@ -174,7 +174,7 @@ func MockingServer() *httptest.Server {
 
 		case "/v2/" + config.OpenStack.TenantID + "/os-hypervisors/compute-1.dev.nuvem-intera.local/servers":
 			if r.Header["X-Auth-Token"][0] == authToken {
-				resp, _ := json.Marshal(listServersFromHostsResponse)
+				resp, _ := json.Marshal(listServersFromOpenStackHosts)
 				fmt.Fprintln(w, string(resp))
 			}
 
@@ -215,7 +215,7 @@ func Test_AuthGetToken_WithValidConfig_ReturnsValidAuthToken(t *testing.T) {
 	}
 }
 
-func Test_GetHosts_WithValidConfigTenantIDAndToken_ReturnsValidHostsResponse(t *testing.T) {
+func Test_GetHosts_WithValidConfigTenantIDAndToken_ReturnsValidOpenStackHosts(t *testing.T) {
 
 	res, _ := json.Marshal(hostsResponse)
 
@@ -231,7 +231,7 @@ func Test_GetHosts_WithValidConfigTenantIDAndToken_ReturnsValidHostsResponse(t *
 	}
 }
 
-func Test_GetServers_WithValidHostAndToken_ReturnsValidServersResponse(t *testing.T) {
+func Test_GetServers_WithValidHostAndToken_ReturnsValidOpenStackHosts(t *testing.T) {
 
 	res, _ := json.Marshal(serversResponse)
 
@@ -247,10 +247,10 @@ func Test_GetServers_WithValidHostAndToken_ReturnsValidServersResponse(t *testin
 	}
 }
 
-func Test_ListServersFromHosts_WithValidHostListAndToken_ReturnsValidHostsWithServersResponse(t *testing.T) {
+func Test_ListServersFromHosts_WithValidHostListAndToken_ReturnsValidHostsWithOpenStackHosts(t *testing.T) {
 
-	listServersFromHostsMockResponse := listServersFromHostsResponse
-	listServersFromHostsMockResponse = ServersResponse{
+	listServersFromHostsMockResponse := listServersFromOpenStackHosts
+	listServersFromHostsMockResponse = OpenStackHosts{
 		Hypervisors: []Hypervisor{hypervisorGS, hypervisorLSFH},
 	}
 
@@ -260,7 +260,7 @@ func Test_ListServersFromHosts_WithValidHostListAndToken_ReturnsValidHostsWithSe
 	httpMockingServer := MockingServer()
 	config.OpenStack.BaseUrl = httpMockingServer.URL
 
-	var OSHosts HostsResponse
+	var OSHosts OpenStackHosts
 
 	hypervisor1 := hypervisorGS
 	hypervisor1.Servers = nil
@@ -268,7 +268,7 @@ func Test_ListServersFromHosts_WithValidHostListAndToken_ReturnsValidHostsWithSe
 	hypervisor2 := hypervisorLSFH
 	hypervisor2.Servers = nil
 
-	OSHosts = HostsResponse{
+	OSHosts = OpenStackHosts{
 		Hypervisors: []Hypervisor{hypervisor1, hypervisor2},
 	}
 
@@ -282,8 +282,8 @@ func Test_ListServersFromHosts_WithValidHostListAndToken_ReturnsValidHostsWithSe
 
 func Test_GetAllHostsFullInfo_WithValidConfig_ReturnsValidHostsFullInfoResponse(t *testing.T) {
 
-	listServersFromHostsMockResponse := listServersFromHostsResponse
-	listServersFromHostsMockResponse = ServersResponse{
+	listServersFromHostsMockResponse := listServersFromOpenStackHosts
+	listServersFromHostsMockResponse = OpenStackHosts{
 		Hypervisors: []Hypervisor{hypervisorGS},
 	}
 
