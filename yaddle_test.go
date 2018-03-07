@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab-devops.totvs.com.br/golang/yaddle/config"
+	"github.com/totvs-cloud/yaddle/config"
 )
 
 // AuthGetToken
