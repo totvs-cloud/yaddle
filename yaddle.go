@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"gitlab-devops.totvs.com.br/golang/yaddle/config"
+	"github.com/totvs-cloud/yaddle/config"
 )
 
 // Token is a auth token for OpenStack APIs where ID is the token value
